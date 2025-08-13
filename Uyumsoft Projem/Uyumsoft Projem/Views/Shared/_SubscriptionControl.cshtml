@@ -1,0 +1,51 @@
+@using Uyumsoft_Projem.Services
+@inject ICurrentUserService CurrentUserService
+
+@{
+    await CurrentUserService.EnsureLoadedAsync();
+    var currentUser = CurrentUserService.Current;
+    var hasActiveSubscription = CurrentUserService.HasActiveSubscription();
+}
+
+@if (currentUser != null)
+{
+    @if (hasActiveSubscription)
+    {
+        <!-- Premium Member Badge -->
+        <div class="alert alert-success d-flex align-items-center mb-3">
+            <i class="fa fa-star me-2"></i>
+            <div>
+                <strong>Premium Member</strong>
+                <small class="d-block">Unlimited music streaming</small>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Subscribe Prompt -->
+        <div class="alert alert-warning d-flex align-items-center mb-3">
+            <i class="fa fa-info-circle me-2"></i>
+            <div class="flex-grow-1">
+                <strong>Get Premium Access</strong>
+                <small class="d-block">Listen to unlimited music for $5/month</small>
+            </div>
+            <a href="/Subscription" class="btn btn-primary btn-sm ms-2">
+                <i class="fa fa-star me-1"></i> Subscribe
+            </a>
+        </div>
+    }
+}
+else
+{
+    <!-- Login Prompt -->
+    <div class="alert alert-info d-flex align-items-center mb-3">
+        <i class="fa fa-user me-2"></i>
+        <div class="flex-grow-1">
+            <strong>Sign In Required</strong>
+            <small class="d-block">Login to access premium features</small>
+        </div>
+        <a href="/Account/Login" class="btn btn-outline-primary btn-sm ms-2">
+            <i class="fa fa-sign-in-alt me-1"></i> Login
+        </a>
+    </div>
+}

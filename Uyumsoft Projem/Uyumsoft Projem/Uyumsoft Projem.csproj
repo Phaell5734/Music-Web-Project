@@ -1,0 +1,82 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Uyumsoft_Projem</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\icon-fonts\fontawesome-webfont.eot" />
+    <None Include="wwwroot\icon-fonts\fontawesome-webfont.svg" />
+    <None Include="wwwroot\icon-fonts\fontawesome-webfont.woff" />
+    <None Include="wwwroot\icon-fonts\fontawesome-webfont.woff2" />
+    <None Include="wwwroot\img\artist.jpg" />
+    <None Include="wwwroot\img\blog\1.jpg" />
+    <None Include="wwwroot\img\blog\2.jpg" />
+    <None Include="wwwroot\img\blog\3.jpg" />
+    <None Include="wwwroot\img\concept\1.jpg" />
+    <None Include="wwwroot\img\concept\2.jpg" />
+    <None Include="wwwroot\img\concept\3.jpg" />
+    <None Include="wwwroot\img\concept\4.jpg" />
+    <None Include="wwwroot\img\favicon.ico" />
+    <None Include="wwwroot\img\hero-bg.png" />
+    <None Include="wwwroot\img\how-to-bg.jpg" />
+    <None Include="wwwroot\img\icons\back.png" />
+    <None Include="wwwroot\img\icons\brain.png" />
+    <None Include="wwwroot\img\icons\check-icon.png" />
+    <None Include="wwwroot\img\icons\next.png" />
+    <None Include="wwwroot\img\icons\p-1.png" />
+    <None Include="wwwroot\img\icons\p-2.png" />
+    <None Include="wwwroot\img\icons\p-3.png" />
+    <None Include="wwwroot\img\icons\pause.png" />
+    <None Include="wwwroot\img\icons\play.png" />
+    <None Include="wwwroot\img\icons\pointer.png" />
+    <None Include="wwwroot\img\icons\smartphone.png" />
+    <None Include="wwwroot\img\logo.png" />
+    <None Include="wwwroot\img\player-bg.jpg" />
+    <None Include="wwwroot\img\playlist\1.jpg" />
+    <None Include="wwwroot\img\playlist\10.jpg" />
+    <None Include="wwwroot\img\playlist\11.jpg" />
+    <None Include="wwwroot\img\playlist\12.jpg" />
+    <None Include="wwwroot\img\playlist\13.jpg" />
+    <None Include="wwwroot\img\playlist\14.jpg" />
+    <None Include="wwwroot\img\playlist\15.jpg" />
+    <None Include="wwwroot\img\playlist\2.jpg" />
+    <None Include="wwwroot\img\playlist\3.jpg" />
+    <None Include="wwwroot\img\playlist\4.jpg" />
+    <None Include="wwwroot\img\playlist\5.jpg" />
+    <None Include="wwwroot\img\playlist\6.jpg" />
+    <None Include="wwwroot\img\playlist\7.jpg" />
+    <None Include="wwwroot\img\playlist\8.jpg" />
+    <None Include="wwwroot\img\playlist\9.jpg" />
+    <None Include="wwwroot\img\premium\1.jpg" />
+    <None Include="wwwroot\img\premium\2.jpg" />
+    <None Include="wwwroot\img\premium\3.jpg" />
+    <None Include="wwwroot\img\premium\4.jpg" />
+    <None Include="wwwroot\img\songs\1.jpg" />
+    <None Include="wwwroot\img\songs\2.jpg" />
+    <None Include="wwwroot\img\songs\3.jpg" />
+    <None Include="wwwroot\img\songs\4.jpg" />
+    <None Include="wwwroot\img\songs\5.jpg" />
+    <None Include="wwwroot\img\songs\6.jpg" />
+    <None Include="wwwroot\img\songs\7.jpg" />
+    <None Include="wwwroot\img\songs\8.jpg" />
+    <None Include="wwwroot\img\wave-thumb.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.7">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.7">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>

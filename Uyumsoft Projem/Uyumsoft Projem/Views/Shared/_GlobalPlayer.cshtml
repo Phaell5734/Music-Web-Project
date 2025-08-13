@@ -1,0 +1,26 @@
+﻿@* global audio bar (en alta) *@
+<div id="globalPlayer" class="fixed-bottom bg-dark text-white" style="display:none;">
+    <div class="container d-flex align-items-center py-2">
+        <img id="playerCover" src="" class="me-3" style="width:50px;height:50px;object-fit:cover;" />
+        <div class="flex-grow-1">
+            <div id="playerTitle" class="fw-bold"></div>
+            <div id="playerArtist" class="small text-muted"></div>
+        </div>
+        
+        <!-- Player kontrolleri -->
+        <div class="d-flex align-items-center me-3">
+            <button id="playerPrevious" class="btn btn-sm btn-outline-light me-2">
+                <i class="fa fa-step-backward"></i>
+            </button>
+            <button id="playerPlayPause" class="btn btn-sm btn-primary me-2">
+                <i class="fa fa-play"></i>
+            </button>
+            <button id="playerNext" class="btn btn-sm btn-outline-light">
+                <i class="fa fa-step-forward"></i>
+            </button>
+        </div>
+        
+        <audio id="audioPlayer" controls style="width:250px;"></audio>
+        <button id="playerClose" class="btn btn-sm btn-outline-light ms-3">×</button>
+    </div>
+</div>

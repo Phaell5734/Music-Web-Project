@@ -1,0 +1,126 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Song Details";
+    var song = ViewBag.Song as Uyumsoft_Projem.Models.SongsDetail;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/song-details.css" />
+}
+
+<!-- Song Details Page -->
+<section class="song-details-page py-5">
+    <div class="container">
+        <!-- Subscription Control Ekle -->
+        <partial name="_SubscriptionControl" />
+        
+        <div class="row">
+            <!-- Cover & Purchase -->
+            <div class="col-md-4 mb-4">
+                <img src="@song.ImagePath" alt="@song.Title" class="img-fluid rounded shadow-sm" />
+                <div class="mt-3 text-center">
+                    <h2 class="h4 mb-2">@song.Title</h2>
+                    <p class="mb-1">Price: <strong>$@song.Price</strong></p>
+                    
+                    @if (ViewBag.Current != null)
+                    {
+                        @if (ViewBag.UserIsArtist)
+                        {
+                            <!-- Show Subscribe button for artists -->
+                            <a href="/Subscription" class="btn btn-primary btn-block">
+                                <i class="fa fa-star me-1"></i> Subscribe to listen other Songs
+                            </a>
+                        }
+                        else if (!ViewBag.UserOwnsSong)
+                        {
+                            <a href="/Subscription" class="btn btn-primary btn-block">
+                                <i class="fa fa-star me-1"></i> Subscribe to listen other Songs
+                            </a>
+                            <button type="button"
+                                    class="btn btn-outline-secondary btn-block mt-2 add-cart"
+                                    data-id="@song.SongId">
+                                <i class="fa fa-plus me-1"></i> Add to Cart
+                            </button>
+                        }
+                        else
+                        {
+                            <!-- User already owns this song -->
+                            <div class="alert alert-success">
+                                <i class="fa fa-check-circle me-1"></i> You own this song
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <!-- Not logged in - show login prompt -->
+                        <a href="/Account/Login" class="btn btn-outline-primary btn-block">
+                            Login to Purchase
+                        </a>
+                    }
+                </div>
+            </div>
+            <!-- Info & Player -->
+            <div class="col-md-8">
+                <div class="song-meta mb-4">
+                    <h3 class="h5 mb-3">Song Information</h3>
+                    <ul class="list-unstyled">
+                        <li><strong>Genre:</strong> @song.Genre</li>
+                        <li><strong>Uploaded On:</strong> @song.UploadDate</li>
+                        <li><strong>Plays:</strong> @song.ClickTimes</li>
+                        <li>
+                            <strong>Artist(s):</strong>
+                            @if (!string.IsNullOrWhiteSpace(song.Singers))
+                            {
+                                var singerNames = song.Singers
+                                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                .Select(s => s.Trim())
+                                .Where(s => !string.IsNullOrEmpty(s))
+                                .ToList();
+
+                                foreach (var singer in singerNames)
+                                {
+                                    <a asp-controller="Artist" asp-action="Index" asp-route-artistName="@singer" 
+                                       class="btn btn-outline-info btn-sm me-1 mb-1">
+                                        @singer
+                                    </a>
+                                }
+                            }
+                            else
+                            {
+                                <span>No artist information.</span>
+                            }
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="song-player">
+                    <h3>Listen Now</h3>
+
+                    <button class="btn btn-success btn-lg w-100 btn-play"
+                            data-url="@song.FilePath"
+                            data-cover="@song.ImagePath"
+                            data-title="@song.Title"
+                            data-artist="@song.Singers"
+                            data-song-id="@song.SongId">
+                        <i class="fa fa-play me-2"></i>
+                        Listen Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @* --- 5. ADIMDA GÜNCELLEDİĞİMİZ KISIM: 
+       Wavesurfer import ve init kodu yorum satırıyla devre dışı bırakıldı --- *@
+    <!--<script src="~/js/wavesurfer.min.js"></script>
+    <script>
+        var wavesurfer = WaveSurfer.create({
+            container: '#waveform',
+            waveColor: '#ddd',
+            progressColor: '#555'
+        });
+        wavesurfer.load('@song.FilePath');
+    </script>-->
+}

@@ -1,0 +1,418 @@
+﻿@model Uyumsoft_Projem.ViewModels.PlaylistDetailViewModel
+@using Uyumsoft_Projem.Helpers
+@{
+    ViewData["Title"] = Model.Playlist.Title;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var user = ViewBag.CurrentUser as User;
+    var missingSongsCount = Model.Songs.Count - Model.OwnedSongIds.Count;
+}
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h1 class="h3">@Model.Playlist.Title</h1>
+                    <p class="text-muted">Created by @Model.Playlist.CreatorUsername</p>
+                    <p class="text-muted">@Model.Playlist.CreatedAt.ToString("MMMM dd, yyyy")</p>
+                    
+                    @if (Model.HasActiveSubscription)
+                    {
+                        <!-- Aboneliği olan kullanıcı için playlist çalma butonu -->
+                        <div class="alert alert-success mb-3">
+                            <i class="fa fa-star me-1"></i> Premium Member
+                        </div>
+                        <button class="btn btn-primary w-100 btn-lg" id="playPlaylistBtn">
+                            <i class="fa fa-play me-2"></i> Play Playlist
+                        </button>
+                        <button class="btn btn-outline-secondary w-100 mt-2" id="shufflePlaylistBtn">
+                            <i class="fa fa-random me-2"></i> Shuffle Play
+                        </button>
+                    }
+                    else if (missingSongsCount > 0)
+                    {
+                        <div class="alert alert-info">
+                            <p class="mb-0">You don't own @missingSongsCount songs in this playlist.</p>
+                            <p class="font-weight-bold">Total price: $@Model.TotalPriceOfMissingSongs</p>
+                        </div>
+                        
+                        <div class="d-flex flex-column gap-2 mt-3">
+                            <a href="/Subscription" class="btn btn-primary w-100">
+                                <i class="fa fa-star me-1"></i> Subscribe - $5/month
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Tüm şarkılara sahip olan kullanıcı için -->
+                        <div class="alert alert-success mb-3">
+                            <i class="fa fa-check-circle me-1"></i> You own all songs
+                        </div>
+                        <button class="btn btn-primary w-100 btn-lg" id="playPlaylistBtn">
+                            <i class="fa fa-play me-2"></i> Play Playlist
+                        </button>
+                        <button class="btn btn-outline-secondary w-100 mt-2" id="shufflePlaylistBtn">
+                            <i class="fa fa-random me-2"></i> Shuffle Play
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <h2 class="h4 mb-0">Songs</h2>
+                    <!-- Search Form -->
+                    <div class="input-group" style="max-width: 300px;">
+                        <form id="searchPlaylistForm" method="get" action="javascript:void(0);" class="input-group">
+                            <input type="text" id="searchPlaylistInput" name="search" class="form-control" placeholder="Search in playlist..." autocomplete="off" />
+                            <button class="btn btn-outline-secondary" type="submit"><i class="fa fa-search"></i></button>
+                        </form>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group playlist-songs" id="playlist-songs-container">
+                        @for (int i = 0; i < Model.Songs.Count; i++)
+                        {
+                            var song = Model.Songs[i];
+                            var userOwnsSong = Model.OwnedSongIds.Contains(song.SongId);
+                            var canPlay = user != null && (Model.HasActiveSubscription || userOwnsSong || AccessRules.CanPlay(user, song));
+                            
+                            <li class="list-group-item d-flex justify-content-between align-items-center" 
+                                data-song-id="@song.SongId"
+                                data-song-title="@song.Title"
+                                data-song-url="@song.FilePath"
+                                data-song-cover="@song.ImagePath"
+                                data-song-index="@i">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-light text-dark me-3">@(i + 1)</span>
+                                    <img src="@song.ImagePath" alt="@song.Title" style="width: 50px; height: 50px; object-fit: cover;" class="me-3">
+                                    <div>
+                                        <h5 class="mb-0">@song.Title</h5>
+                                        <small class="text-muted">@song.Genre</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    @if (canPlay)
+                                    {
+                                        <button class="btn btn-success btn-sm me-2 btn-play-single"
+                                                data-url="@song.FilePath"
+                                                data-cover="@song.ImagePath"
+                                                data-title="@song.Title"
+                                                data-song-id="@song.SongId"
+                                                data-index="@i">
+                                            <i class="fa fa-play"></i> Play
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-outline-primary btn-sm me-2 add-cart"
+                                                data-id="@song.SongId">
+                                            <i class="fa fa-cart-plus"></i> $@song.Price
+                                        </button>
+                                    }
+                                    
+                                    @if (User.Identity?.Name == Model.Playlist.CreatorUsername)
+                                    {
+                                        <button class="btn btn-outline-danger btn-sm remove-song" 
+                                                data-song-id="@song.SongId" 
+                                                data-playlist-id="@Model.Playlist.PlaylistId">
+                                            <i class="fa fa-times"></i>
+                                        </button>
+                                    }
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                    
+                    @if (!Model.Songs.Any())
+                    {
+                        <div class="alert alert-light text-center my-4">
+                            <p>No songs in this playlist yet.</p>
+                            <p>Add songs from the song library or search page.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            console.log("Playlist Details page loaded");
+            
+            // GlobalPlaylist kontrolü
+            if (typeof window.GlobalPlaylist === 'undefined') {
+                console.error("GlobalPlaylist is not defined!");
+                return;
+            }
+            
+            var playlistSongs = [];
+            var originalPlaylistHtml = '';
+            var playlistId = @Model.Playlist.PlaylistId;
+            var playlistTitle = "@Model.Playlist.Title";
+            
+            // Orijinal HTML'i sakla
+            originalPlaylistHtml = $('#playlist-songs-container').html();
+            
+            // AJAX ile playlist verilerini yükle
+            loadPlaylistData();
+            
+            function loadPlaylistData() {
+                $.ajax({
+                    url: '/Playlist/GetPlaylistSongs',
+                    type: 'GET',
+                    data: { playlistId: playlistId },
+                    success: function(result) {
+                        if (result.success) {
+                            playlistSongs = result.songs;
+                            console.log("Playlist data loaded:", {
+                                songsCount: playlistSongs.length,
+                                playlistId: playlistId,
+                                playlistTitle: playlistTitle
+                            });
+                            
+                            // Sayfa yüklendiğinde mevcut playlist'i kontrol et
+                            if (window.GlobalPlaylist && window.GlobalPlaylist.playlistId === playlistId) {
+                                highlightCurrentSong();
+                            }
+                        } else {
+                            console.error("Error loading playlist data:", result.message);
+                        }
+                    },
+                    error: function() {
+                        console.error("AJAX error loading playlist data");
+                    }
+                });
+            }
+            
+            // Search functionality
+            $('#searchPlaylistForm').on('submit', function(e) {
+                e.preventDefault();
+                searchInPlaylist();
+            });
+
+            $('#searchPlaylistInput').on('input', function() {
+                searchInPlaylist();
+            });
+
+            function searchInPlaylist() {
+                var query = $('#searchPlaylistInput').val();
+
+                if (!query) {
+                    // Boşsa orijinal HTML'i geri yükle
+                    $('#playlist-songs-container').html(originalPlaylistHtml);
+                    initializeSortable();
+                    return;
+                }
+
+                $.ajax({
+                    url: '/Playlist/SearchInPlaylist',
+                    type: 'POST',
+                    data: { 
+                        playlistId: playlistId,
+                        searchTerm: query 
+                    },
+                    success: function(html) {
+                        // Song/Index'teki gibi dönen HTML'den playlist-songs-container'ı al
+                        var playlistHtml = $(html).find('#playlist-songs-container').html();
+                        $('#playlist-songs-container').html(playlistHtml);
+                        initializeSortable();
+                    },
+                    error: function() {
+                        console.error("AJAX search error");
+                    }
+                });
+            }
+            
+            // Play entire playlist
+            $(document).on('click', '#playPlaylistBtn', function() {
+                console.log("Play Playlist button clicked");
+                if (playlistSongs && playlistSongs.length > 0) {
+                    try {
+                        window.GlobalPlaylist.loadPlaylist(
+                            playlistSongs, 
+                            playlistId, 
+                            playlistTitle, 
+                            0, 
+                            false
+                        );
+                        var result = window.GlobalPlaylist.playCurrentSong();
+                        console.log("Playlist play result:", result);
+                        highlightCurrentSong();
+                    } catch (e) {
+                        console.error("Error playing playlist:", e);
+                    }
+                } else {
+                    console.log("No songs in playlist");
+                    loadPlaylistData();
+                }
+            });
+            
+            // Shuffle play playlist
+            $(document).on('click', '#shufflePlaylistBtn', function() {
+                console.log("Shuffle Playlist button clicked");
+                if (playlistSongs && playlistSongs.length > 0) {
+                    try {
+                        window.GlobalPlaylist.loadPlaylist(
+                            playlistSongs, 
+                            playlistId, 
+                            playlistTitle, 
+                            0, 
+                            true
+                        );
+                        var result = window.GlobalPlaylist.playCurrentSong();
+                        console.log("Shuffle play result:", result);
+                        highlightCurrentSong();
+                    } catch (e) {
+                        console.error("Error shuffling playlist:", e);
+                    }
+                } else {
+                    loadPlaylistData();
+                }
+            });
+            
+            // Play individual song
+            $(document).on('click', '.btn-play-single', function() {
+                console.log("Individual song play button clicked");
+                var songIndex = parseInt($(this).data('index'));
+                
+                if (playlistSongs && playlistSongs.length > 0) {
+                    try {
+                        window.GlobalPlaylist.loadPlaylist(
+                            playlistSongs, 
+                            playlistId, 
+                            playlistTitle, 
+                            songIndex, 
+                            false
+                        );
+                        var result = window.GlobalPlaylist.playCurrentSong();
+                        console.log("Individual song play result:", result);
+                        highlightCurrentSong();
+                    } catch (e) {
+                        console.error("Error playing individual song:", e);
+                    }
+                } else {
+                    loadPlaylistData();
+                }
+            });
+            
+            // Aktif şarkıyı vurgula
+            function highlightCurrentSong() {
+                $('#playlist-songs-container li').removeClass('active');
+                
+                if (window.GlobalPlaylist && window.GlobalPlaylist.playlistId === playlistId && window.GlobalPlaylist.songs && window.GlobalPlaylist.songs.length > 0) {
+                    var actualIndex = window.GlobalPlaylist.isShuffleMode ? 
+                        window.GlobalPlaylist.shuffledIndices[window.GlobalPlaylist.currentIndex] : 
+                        window.GlobalPlaylist.currentIndex;
+                    
+                    $(`#playlist-songs-container li[data-song-index="${actualIndex}"]`).addClass('active');
+                }
+            }
+            
+            // Global playlist değişikliklerini dinle
+            $(document).on('playlistSongChanged', function(e, data) {
+                if (data && data.playlistId === playlistId) {
+                    highlightCurrentSong();
+                }
+            });
+            
+            function initializeSortable() {
+                @if (User.Identity?.Name == Model.Playlist.CreatorUsername)
+                {
+                    <text>
+                    var el = document.getElementById('playlist-songs-container');
+                    if (el && typeof Sortable !== 'undefined') {
+                        var sortable = new Sortable(el, {
+                            animation: 150,
+                            onEnd: function() {
+                                var songIds = Array.from(document.querySelectorAll('#playlist-songs-container li'))
+                                    .map(item => item.getAttribute('data-song-id'));
+                                    
+                                $.ajax({
+                                    url: '/Playlist/UpdateSongOrder',
+                                    type: 'POST',
+                                    data: {
+                                        playlistId: playlistId,
+                                        songIds: songIds
+                                    },
+                                    traditional: true,
+                                    success: function(result) {
+                                        if (result.success) {
+                                            console.log('Song order updated');
+                                            loadPlaylistData();
+                                        }
+                                    },
+                                    error: function() {
+                                        console.error('Error updating song order');
+                                    }
+                                });
+                            }
+                        });
+                    }
+                    </text>
+                }
+            }
+            
+            // Enable drag and drop sorting
+            initializeSortable();
+            
+            // Remove song from playlist
+            $(document).on('click', '.remove-song', function() {
+                var songId = $(this).data('song-id');
+                var playlistIdToRemove = $(this).data('playlist-id');
+                var $listItem = $(this).closest('li');
+                
+                if (confirm('Are you sure you want to remove this song from the playlist?')) {
+                    $.ajax({
+                        url: '/Playlist/RemoveSongFromPlaylist',
+                        type: 'POST',
+                        data: {
+                            songId: songId,
+                            playlistId: playlistIdToRemove
+                        },
+                        success: function(result) {
+                            if (result.success) {
+                                $listItem.fadeOut(300, function() { 
+                                    $(this).remove(); 
+                                    loadPlaylistData();
+                                    // Orijinal HTML'i güncelle
+                                    originalPlaylistHtml = $('#playlist-songs-container').html();
+                                });
+                            } else {
+                                alert('Error removing song: ' + (result.message || 'Unknown error'));
+                            }
+                        },
+                        error: function() {
+                            alert('Error removing song from playlist');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+    
+    <style>
+        .list-group-item.active {
+            background-color: #e3f2fd !important;
+            border-color: #2196f3 !important;
+        }
+        
+        .badge {
+            min-width: 25px;
+            text-align: center;
+        }
+        
+        .gap-2 > * + * {
+            margin-top: 0.5rem;
+        }
+        
+        .w-100 {
+            width: 100% !important;
+        }
+    </style>
+}

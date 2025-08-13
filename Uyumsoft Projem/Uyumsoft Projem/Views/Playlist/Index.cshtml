@@ -1,0 +1,225 @@
+﻿@model IEnumerable<Uyumsoft_Projem.Models.Playlist>
+@{
+    ViewData["Title"] = "My Playlists";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5">
+    <!-- Subscription Control Ekle -->
+    <partial name="_SubscriptionControl" />
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2">My Playlists</h1>
+        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#createPlaylistModal">
+            <i class="fa fa-plus me-2"></i> Create New Playlist
+        </button>
+    </div>
+
+    <div class="row" id="playlistsContainer">
+        @if (Model.Any())
+        {
+            foreach (var playlist in Model)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">@playlist.Title</h5>
+                            <p class="card-text text-muted">
+                                Created @playlist.CreatedAt.ToString("MMM dd, yyyy")
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <a asp-action="Details" asp-route-id="@playlist.PlaylistId" class="btn btn-outline-primary btn-sm">
+                                <i class="fa fa-list me-1"></i> View Playlist
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <p>You don't have any playlists yet. Create your first playlist to start organizing your music!</p>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Create Playlist Modal -->
+<div class="modal fade" id="createPlaylistModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Playlist</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="createPlaylistForm" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="modal-body">
+                    <div class="alert alert-danger" id="errorMessage" style="display: none;"></div>
+                    <div class="alert alert-success" id="successMessage" style="display: none;"></div>
+                    
+                    <div class="form-group">
+                        <label for="title">Playlist Name</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                        <span class="text-danger" id="titleError"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <span class="spinner-border spinner-border-sm me-2" role="status" id="loadingSpinner" style="display: none;"></span>
+                        Create Playlist
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            console.log("Playlist Index page loaded");
+            
+            // Modal açıldığında form'u temizle
+            $('#createPlaylistModal').on('show.bs.modal', function () {
+                clearForm();
+            });
+            
+            // Form validation ve submit - Song sayfalarındaki pattern'ı takip edelim
+            $('#createPlaylistForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                // Error mesajlarını temizle
+                clearMessages();
+                
+                var title = $('#title').val().trim();
+                
+                // Client-side validation
+                if (!title) {
+                    showError('Playlist name is required.');
+                    $('#titleError').text('Playlist name is required.');
+                    return;
+                }
+                
+                if (title.length < 3) {
+                    showError('Playlist name must be at least 3 characters long.');
+                    $('#titleError').text('Playlist name must be at least 3 characters long.');
+                    return;
+                }
+                
+                // Submit form via AJAX
+                submitForm(title);
+            });
+            
+            // Input change'de error mesajlarını temizle
+            $('#title').on('input', function() {
+                clearMessages();
+            });
+            
+            function submitForm(title) {
+                // Loading state göster
+                showLoading(true);
+                
+                $.ajax({
+                    url: '/Playlist/Create',
+                    type: 'POST',
+                    data: {
+                        title: title,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(result) {
+                        showLoading(false);
+                        
+                        if (result.success) {
+                            showSuccess(result.message);
+                            setTimeout(function() {
+                                $('#createPlaylistModal').modal('hide');                           
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            showError(result.message || 'An error occurred while creating the playlist.');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        showLoading(false);
+                        console.error('AJAX Error:', error);
+                        showError('An error occurred while creating the playlist. Please try again.');
+                    }
+                });
+            }
+            
+            function showLoading(show) {
+                var $submitBtn = $('#submitBtn');
+                var $spinner = $('#loadingSpinner');
+                
+                if (show) {
+                    $submitBtn.prop('disabled', true);
+                    $spinner.show();
+                    $submitBtn.contents().filter(function() {
+                        return this.nodeType === 3; // Text node
+                    }).first().replaceWith('Creating...');
+                } else {
+                    $submitBtn.prop('disabled', false);
+                    $spinner.hide();
+                    $submitBtn.contents().filter(function() {
+                        return this.nodeType === 3; // Text node
+                    }).first().replaceWith('Create Playlist');
+                }
+            }
+            
+            function showError(message) {
+                $('#errorMessage').text(message).show();
+                $('#successMessage').hide();
+            }
+            
+            function showSuccess(message) {
+                $('#successMessage').text(message).show();
+                $('#errorMessage').hide();
+            }
+            
+            function clearMessages() {
+                $('#errorMessage').hide();
+                $('#successMessage').hide();
+                $('#titleError').text('');
+            }
+            
+            function clearForm() {
+                $('#title').val('');
+                clearMessages();
+                showLoading(false);
+            }
+        });
+    </script>
+    
+    <style>
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+        
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        
+        .alert {
+            border-radius: 0.375rem;
+        }
+        
+        .card {
+            transition: transform 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+}

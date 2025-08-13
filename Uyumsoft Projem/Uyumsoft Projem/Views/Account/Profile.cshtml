@@ -1,0 +1,131 @@
+﻿@model User
+@{
+    ViewData["Title"] = "Profile Information";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .profile-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .balance-alert {
+            animation: pulse 2s infinite;
+        }
+        keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+}
+
+<div class="container py-5">
+    <div class="profile-container">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">
+                    <i class="fa fa-user me-2"></i>Complete Your Profile
+                </h3>
+            </div>
+            <div class="card-body">
+                @if (Model.Balance > 0)
+                {
+                    <div class="alert alert-warning balance-alert mb-4">
+                        <i class="fa fa-exclamation-triangle me-2"></i>
+                        <strong>Payment Available!</strong><br>
+                        You have a balance of <strong>$@((Model.Balance ?? 0).ToString("F2"))</strong> waiting for you.
+                        Complete your profile information to receive your payment.
+                    </div>
+                }
+
+                <form id="profileForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="firstName" class="form-label">First Name *</label>
+                            <input type="text" class="form-control" id="firstName" name="firstName" 
+                                   value="@Model.FirstName" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="lastName" class="form-label">Last Name *</label>
+                            <input type="text" class="form-control" id="lastName" name="lastName" 
+                                   value="@Model.LastName" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address *</label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               value="@Model.Email" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tcno" class="form-label">ID Number (TC) *</label>
+                        <input type="text" class="form-control" id="tcno" name="tcno" 
+                               value="@Model.Tcno" required maxlength="11" pattern="[0-9]{11}">
+                        <div class="form-text">Enter your 11-digit ID number</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Address *</label>
+                        <textarea class="form-control" id="address" name="address" rows="3" required>@Model.Address</textarea>
+                        <div class="form-text">Enter your complete address for payments</div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fa fa-info-circle me-2"></i>
+                        <strong>Why do we need this information?</strong><br>
+                        This information is required for payment processing and legal compliance.
+                        All information is kept secure and confidential.
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fa fa-save me-2"></i>Save Profile Information
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $('#profileForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            var tcno = $('#tcno').val();
+            if (tcno.length !== 11 || !/^\d+$/.test(tcno)) {
+                alert('Please enter a valid 11-digit ID number');
+                return;
+            }
+            
+            var formData = {
+                firstName: $('#firstName').val(),
+                lastName: $('#lastName').val(),
+                email: $('#email').val(),
+                tcno: tcno,
+                address: $('#address').val()
+            };
+            
+            $.ajax({
+                url: '/Account/UpdateProfile',
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    if (response.success) {
+                        alert('Profile updated successfully!');
+                        window.location.href = '/Home/Index';
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('An error occurred while updating your profile.');
+                }
+            });
+        });
+    </script>
+}

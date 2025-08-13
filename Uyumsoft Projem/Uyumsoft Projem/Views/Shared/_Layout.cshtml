@@ -1,0 +1,431 @@
+﻿<!DOCTYPE html>
+<html lang="zxx">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title - SolMusic</title>
+
+    <!-- Favicon -->
+    <link href="~/img/favicon.ico" rel="shortcut icon" />
+
+    <!-- Google font -->
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,300i,400,400i,500,500i,600,600i,700,700i&display=swap" rel="stylesheet" />
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="~/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="~/css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="~/css/slicknav.min.css" />
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="~/css/style.css" />
+
+    @RenderSection("Styles", required: false)
+</head>
+<body>
+    <partial name="_GlobalPlayer" />
+
+    <!-- Page Preloader -->
+    <div id="preloder">
+        <div class="loader"></div>
+    </div>
+    @{
+        await Cu.EnsureLoadedAsync();
+    }
+    
+    <!-- Header -->
+    <header class="header-section clearfix">
+        <a href="~/" class="site-logo"><img src="~/img/logo.png" alt="SolMusic" /></a>
+        <div class="header-right">
+            <a href="#" class="hr-btn">Help</a>
+            <span>|</span>
+            <div class="user-panel">
+                @if (User.Identity!.IsAuthenticated)
+                {
+                    <span class="username">Hello, @User.Identity.Name</span>
+                    
+                    <!-- Subscription Badge Partial View Kullanımı -->
+                    <partial name="_SubscriptionBadge" />
+                    
+                    @if (Cu.IsAdmin())
+                    {
+                        <a asp-controller="Admin" asp-action="Index" class="me-3 text-danger">
+                            <i class="fa fa-cog"></i> Admin
+                        </a>
+                    }
+                    <a asp-controller="Wallet" asp-action="Balance" class="me-3">
+                        <i class="fa fa-wallet"></i>
+                        <span id="balanceBadge" class="badge bg-info">₺0</span>
+                    </a>
+
+                    <a asp-controller="Cart" asp-action="Index" id="cartLink"
+                       class="position-relative me-3">
+                        <i class="fa fa-shopping-cart fa-lg"></i>
+                        <span id="cartCount"
+                              class="badge bg-danger position-absolute top-0 start-100 translate-middle">0</span>
+                    </a>
+
+                    <a href="/Account/Logout" data-no-pjax>Logout</a>
+                }
+                else
+                {
+                    <!-- Giriş yapmamış kullanıcılar için info -->
+                    <span class="text-muted me-2">
+                        <i class="fa fa-info-circle"></i> Login for Premium features
+                    </span>
+                    <a href="~/Account/Login" class="login">Login</a>
+                    <a href="~/Account/Login" class="register">Create an account</a>
+                }
+            </div>
+        </div>
+        
+        <!-- Navigation Menu -->
+        <ul class="main-menu">
+            <!-- Home Menu (Authentication Required) -->
+            <li>
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <a asp-controller="Home" asp-action="Index">
+                        <i class="fa fa-home me-1"></i> Home
+                    </a>
+                }
+                else
+                {
+                    <a href="/Account/Login" title="Login required to access Home">
+                        <i class="fa fa-home me-1"></i> Home
+                    </a>
+                }
+            </li>
+
+            <!-- Music Menu (Authentication Required for Songs) -->
+            <li>
+                <a href="#"><i class="fa fa-music me-1"></i> Music</a>
+                <ul class="sub-menu">
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <li><a asp-controller="Song" asp-action="Index">Browse Songs</a></li>
+                        <li><a asp-controller="Song" asp-action="MySongList">My Songs</a></li>
+                        <li><a asp-controller="Library" asp-action="Index">My Library</a></li>
+                    }
+                    else
+                    {
+                        <li><a href="/Account/Login" title="Login required">Browse Songs</a></li>
+                        <li><a href="/Account/Login" title="Login required">My Songs</a></li>
+                        <li><a href="/Account/Login" title="Login required">My Library</a></li>
+                    }
+                </ul>
+            </li>
+
+            <!-- Artist Menu -->
+            <li>
+                <a href="#"><i class="fa fa-users me-1"></i> Artists</a>
+                <ul class="sub-menu">
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <li><a asp-controller="Artist" asp-action="Following">Following</a></li>
+                    }
+                    else
+                    {
+                        <li><a href="/Account/Login" title="Login required">Artist Profiles</a></li>
+                        <li><a href="/Account/Login" title="Login required">Following</a></li>
+                    }
+                </ul>
+            </li>
+
+            <!-- Playlist Menu (Authentication Required) -->
+            @if (User.Identity.IsAuthenticated)
+            {
+                <li>
+                    <a asp-controller="Playlist" asp-action="Index">
+                        <i class="fa fa-list me-1"></i> Playlists
+                    </a>
+                    <ul class="sub-menu">
+                        <li><a asp-controller="Playlist" asp-action="Index">My Playlists</a></li>
+                        <li><a href="#" data-toggle="modal" data-target="#createPlaylistModal">Create New Playlist</a></li>
+                    </ul>
+                </li>
+            }
+            else
+            {
+                <li>
+                    <a href="/Account/Login" title="Login required to access Playlists">
+                        <i class="fa fa-list me-1"></i> Playlists
+                    </a>
+                </li>
+            }
+            
+            <!-- Premium Menu (Show upgrade option for non-premium users) -->
+            @if (User.Identity.IsAuthenticated && !Cu.HasActiveSubscription())
+            {
+                <li>
+                    <a asp-controller="Subscription" asp-action="Index" class="text-warning">
+                        <i class="fa fa-star me-1"></i> Get Premium
+                    </a>
+                </li>
+            }
+            else if (!User.Identity.IsAuthenticated)
+            {
+                <li>
+                    <a href="/Account/Login" class="text-warning" title="Login to access Premium features">
+                        <i class="fa fa-star me-1"></i> Premium
+                    </a>
+                </li>
+            }
+
+            <!-- Information Menu -->
+            <li>
+                <a href="#"><i class="fa fa-info-circle me-1"></i> Info</a>
+                <ul class="sub-menu">
+                    <li><a asp-controller="Home" asp-action="About">About Us</a></li>
+                    <li><a asp-controller="Blog" asp-action="Index">News & Blog</a></li>
+                    <li><a asp-controller="Home" asp-action="Contact">Contact</a></li>
+                </ul>
+            </li>
+        </ul>
+    </header>
+
+    <!-- Main content -->
+    <main role="main" id="pjax-container">
+        @RenderBody()
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer-section">
+        <div class="container">
+            <!-- Premium promotion for non-logged users -->
+            @if (!User.Identity.IsAuthenticated)
+            {
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="alert alert-primary text-center">
+                            <h5><i class="fa fa-star me-2"></i> Join SolMusic Premium</h5>
+                            <p class="mb-2">Unlimited music streaming, ad-free experience, and exclusive content</p>
+                            <a href="/Account/Login" class="btn btn-primary me-2">Sign Up Now</a>
+                            <a href="/Subscription" class="btn btn-outline-primary">Learn More</a>
+                        </div>
+                    </div>
+                </div>
+            }
+            
+            <div class="row">
+                <div class="col-xl-6 col-lg-7 order-lg-2">
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <div class="footer-widget">
+                                <h2>About us</h2>
+                                <ul>
+                                    <li><a asp-controller="Home" asp-action="About">About SolMusic</a></li>
+                                    <li><a asp-controller="Home" asp-action="Contact">Contact Us</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="footer-widget">
+                                <h2>Features</h2>
+                                <ul>
+                                    @if (User.Identity.IsAuthenticated)
+                                    {
+                                        <li><a asp-controller="Song" asp-action="Index">Browse Music</a></li>
+                                        <li><a asp-controller="Playlist" asp-action="Index">Playlists</a></li>
+                                        <li><a asp-controller="Library" asp-action="Index">My Library</a></li>
+                                    }
+                                    else
+                                    {
+                                        <li><a href="/Account/Login">Browse Music</a></li>
+                                        <li><a href="/Account/Login">Create Playlists</a></li>
+                                        <li><a href="/Account/Login">Personal Library</a></li>
+                                    }
+                                    <li><a asp-controller="Subscription" asp-action="Index">Premium Subscription</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="footer-widget">
+                                <h2>Support</h2>
+                                <ul>
+                                    <li><a href="#">Help Center</a></li>
+                                    <li><a href="#">Community</a></li>
+                                    <li><a href="#">Privacy Policy</a></li>
+                                    <li><a asp-controller="Home" asp-action="Contact">Contact Support</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-6 col-lg-5 order-lg-1">
+                    <img src="~/img/logo.png" alt="SolMusic Logo" />
+                    <div class="copyright">
+                        &copy; @DateTime.Now.Year All rights reserved | This template is made with <i class="fa fa-heart-o" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
+                    </div>
+                    <div class="social-links">
+                        <a href="#"><i class="fa fa-instagram"></i></a>
+                        <a href="#"><i class="fa fa-pinterest"></i></a>
+                        <a href="#"><i class="fa fa-facebook"></i></a>
+                        <a href="#"><i class="fa fa-twitter"></i></a>
+                        <a href="#"><i class="fa fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <script src="~/js/jplayerInit.js"></script>
+    <script src="~/js/wavesurfer.min.js"></script>
+    <script src="~/js/WaveSurferInit.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="~/js/jquery.slicknav.min.js"></script>
+    <script src="~/js/player.js"></script>
+    <script src="~/js/owl.carousel.min.js"></script>
+    <script src="~/js/mixitup.min.js"></script>
+    <script src="~/js/main.js"></script>
+
+
+    <script>
+        var currentSongId = null;
+        var playTrackingInterval = null;
+        
+        function startPlayTracking(songId) {
+            if (!songId) return;
+            
+            console.log("Starting play tracking for song:", songId);
+            currentSongId = songId;
+            
+            $.ajax({
+                url: '/Song/TrackPlay',
+                type: 'POST',
+                data: { songId: songId },
+                success: function(result) {
+                    if (result.success) {
+                        console.log("Play tracked successfully. New click count:", result.clickTimes);
+                    } else {
+                        console.log("Play tracking failed:", result.message);
+                    }
+                },
+                error: function() {
+                    console.error("Error tracking song play");
+                }
+            });
+            
+            if (playTrackingInterval) {
+                clearInterval(playTrackingInterval);
+            }
+            
+            playTrackingInterval = setInterval(function() {
+                if (currentSongId === songId) {
+                    $.ajax({
+                        url: '/Song/TrackPlay',
+                        type: 'POST',
+                        data: { songId: songId },
+                        success: function(result) {
+                            console.log("Continued play tracked for song:", songId);
+                        },
+                        error: function() {
+                            console.error("Error in continued play tracking");
+                        }
+                    });
+                }
+            }, 30000); 
+        }
+        
+        function stopPlayTracking() {
+            console.log("Stopping play tracking");
+            if (playTrackingInterval) {
+                clearInterval(playTrackingInterval);
+                playTrackingInterval = null;
+            }
+            currentSongId = null;
+        }
+    </script>
+    <script>
+        $.getJSON('/Wallet/Current', rsp => {
+            if (rsp.ok) $('#balanceBadge').text('₺' + rsp.bal.toFixed(2));
+        });
+    </script>
+
+    <script>        
+        function updateCartBadge(cnt){ $('#cartCount').text(cnt); }
+        $.getJSON('/Cart/Count', d => updateCartBadge(d.count))
+               .fail(()=>updateCartBadge(0));
+    </script>
+    
+    <script>
+        $('body').on('click', '.add-cart', function () {
+            const $btn = $(this);          
+            const id  = $btn.data('id');
+
+            $btn.prop('disabled', true);
+
+            $.post(`/Cart/Add/${id}`)
+                .done(res => {
+                    updateCartBadge(res.count);
+                    alert('Ürün sepete eklendi');
+                    setTimeout(() => $btn.prop('disabled', false), 3000);
+                })
+                .fail(() => {
+                    alert('Sepete ekleme başarısız');
+                    $btn.prop('disabled', false);   
+                });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            if (@User.Identity.IsAuthenticated.ToString().ToLower()) {
+                checkProfileStatus();
+            }
+        });
+        
+        function checkProfileStatus() {
+            $.get('/Account/CheckProfileComplete', function(data) {
+                if (data.hasBalance && !data.complete) {
+                    showProfileWarning();
+                }
+            });
+        }
+        
+        function showProfileWarning() {
+            var warningHtml = `
+                <div class="alert alert-warning alert-dismissible fade show position-fixed" 
+                     style="top: 70px; right: 20px; z-index: 1050; max-width: 400px;">
+                    <i class="fa fa-exclamation-triangle me-2"></i>
+                    <strong>Payment Waiting!</strong><br>
+                    Complete your profile to receive your payment.
+                    <a href="/Account/Profile" class="btn btn-sm btn-outline-warning ms-2">
+                        Complete Now
+                    </a>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            $('body').append(warningHtml);
+            
+            setTimeout(function() {
+                $('.alert').fadeOut();
+            }, 5000);
+        }
+    </script>
+    
+    <script>
+        $('#btnCheckout').on('click', ()=>{
+            $('#btnCheckout').prop('disabled', true);           
+
+            $.post('/Cart/Checkout')
+              .done(()=> window.location.href = '/Cart/Success')
+              .fail(x => {
+                  var response = JSON.parse(x.responseText || '{}');
+                  if (response.redirectToProfile) {
+                      if (confirm(response.message + '\n\nRedirect to profile page?')) {
+                          window.location.href = '/Account/Profile';
+                      }
+                  } else {
+                      alert(x.responseText || 'İşlem başarısız');
+                  }
+                  $('#btnCheckout').prop('disabled', false);
+              });
+        });
+    </script>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

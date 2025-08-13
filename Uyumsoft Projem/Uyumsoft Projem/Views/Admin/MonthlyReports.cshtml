@@ -1,0 +1,228 @@
+﻿@model List<MonthlyReport>
+@{
+    ViewData["Title"] = "Monthly Reports";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid py-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Monthly Reports</h1>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fa fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Generation -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Generate New Report</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="month" class="form-label">Month</label>
+                        <input type="month" class="form-control" id="month" name="month" 
+                               value="@DateTime.Now.ToString("yyyy-MM")" required>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="generateReport()">Generate Report</button>
+                    <small class="form-text text-muted mt-2">
+                        <i class="fa fa-info-circle"></i> Report only includes subscription revenue (sales handled separately)
+                    </small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Distribute Earnings</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="distributeMonth" class="form-label">Month</label>
+                        <input type="month" class="form-control" id="distributeMonth" name="month" 
+                               value="@DateTime.Now.AddMonths(-1).ToString("yyyy-MM")" required>
+                    </div>
+                    <button type="button" class="btn btn-success" onclick="distributeEarnings()">Distribute Earnings</button>
+                    <small class="form-text text-muted mt-2">
+                        <i class="fa fa-warning"></i> Distributes subscription-based earnings only
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Monthly Reports History</h5>
+                    <span class="badge bg-info">Subscription Revenue Only</span>
+                </div>
+                <div class="card-body">
+                    @if (Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Month</th>
+                                        <th>Artist</th>
+                                        <th>Total Plays</th>
+                                        <th>Subscription Revenue</th>
+                                        <th>Platform Commission (15%)</th>
+                                        <th>Artist Payout (85%)</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var report in Model)
+                                    {
+                                        <tr>
+                                            <td><strong>@report.ReportMonth</strong></td>
+                                            <td>@(report.Artist?.UserName ?? "Unknown")</td>
+                                            <td><span class="badge bg-info">@(report.TotalPlays ?? 0)</span></td>
+                                            <td><strong>$@((report.TotalRevenue ?? 0).ToString("F2"))</strong></td>
+                                            <td class="text-danger">$@((report.PlatformCommission ?? 0).ToString("F2"))</td>
+                                            <td class="text-success">$@((report.ArtistPayout ?? 0).ToString("F2"))</td>
+                                            <td>
+                                                @{
+                                                    var hasTransaction = report.Artist?.BalanceTransactions
+                                                        .Any(bt => bt.Type == "Monthly_Payout" && 
+                                                                   (bt.Description ?? "").Contains(report.ReportMonth ?? "")) == true;
+                                                }
+                                                @if (hasTransaction)
+                                                {
+                                                    <span class="badge bg-success">Paid</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning">Pending</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-info">
+                                        <th colspan="2">Totals</th>
+                                        <th>@Model.Sum(r => r.TotalPlays ?? 0)</th>
+                                        <th>$@Model.Sum(r => r.TotalRevenue ?? 0).ToString("F2")</th>
+                                        <th class="text-danger">$@Model.Sum(r => r.PlatformCommission ?? 0).ToString("F2")</th>
+                                        <th class="text-success">$@Model.Sum(r => r.ArtistPayout ?? 0).ToString("F2")</th>
+                                        <th></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fa fa-chart-line fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No reports generated yet</h5>
+                            <p class="text-muted">Generate your first monthly report to see subscription earnings data.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Commission Explanation -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h6><i class="fa fa-info-circle me-2"></i>Revenue Distribution System</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Monthly Subscription Reports</h6>
+                            <ul class="mb-0">
+                                <li><strong>Revenue Source:</strong> Only subscription fees collected monthly</li>
+                                <li><strong>Platform Commission:</strong> 15% of subscription revenue</li>
+                                <li><strong>Artist Payout:</strong> 85% distributed based on play ratios</li>
+                                <li><strong>Distribution Logic:</strong> Based on song play counts proportionally</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-success">Sales Revenue (Separate System)</h6>
+                            <ul class="mb-0">
+                                <li><strong>Processing:</strong> Handled instantly at checkout</li>
+                                <li><strong>Location:</strong> Managed in Cart/Purchase system</li>
+                                <li><strong>Commission:</strong> Distributed immediately upon sale</li>
+                                <li><strong>Not Included:</strong> In these monthly reports</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="alert alert-info mb-0">
+                        <strong>Note:</strong> This system only handles subscription-based revenue distribution. 
+                        Sales revenue is processed separately and instantly in the CartController during checkout.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function generateReport() {
+            var month = document.getElementById('month').value;
+            if (!month) {
+                alert('Please select a month');
+                return;
+            }
+            
+            $.ajax({
+                url: '/Admin/GenerateMonthlyReport',
+                type: 'POST',
+                data: { month: month },
+                success: function(response) {
+                    if (response.success) {
+                        alert(response.message);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('An error occurred while generating the report.');
+                }
+            });
+        }
+        
+        function distributeEarnings() {
+            var month = document.getElementById('distributeMonth').value;
+            if (!month) {
+                alert('Please select a month');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to distribute subscription earnings for ' + month + '? This action cannot be undone.')) {
+                $.ajax({
+                    url: '/Admin/DistributeEarnings',
+                    type: 'POST',
+                    data: { month: month },
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('An error occurred while distributing earnings.');
+                    }
+                });
+            }
+        }
+    </script>
+}

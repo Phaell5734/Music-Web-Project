@@ -1,0 +1,158 @@
+﻿@model Uyumsoft_Projem.Models.Playlist
+@{
+    ViewData["Title"] = "Create Playlist";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">Create New Playlist</h2>
+                </div>
+                <div class="card-body">
+                    <form id="createPlaylistForm" method="post">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="alert alert-danger" id="errorMessage" style="display: none;"></div>
+                        <div class="alert alert-success" id="successMessage" style="display: none;"></div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="Title" class="control-label">Playlist Name</label>
+                            <input name="Title" id="Title" class="form-control" required />
+                            <span class="text-danger" id="titleError"></span>
+                        </div>
+                        
+                        <div class="mt-4 d-flex justify-content-between">
+                            <a href="/Playlist" class="btn btn-secondary">Back to List</a>
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <span class="spinner-border spinner-border-sm me-2" role="status" id="loadingSpinner" style="display: none;"></span>
+                                Create Playlist
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            console.log("Create Playlist page loaded");
+            
+            // Form validation ve submit - Song sayfalarındaki pattern'ı takip edelim
+            $('#createPlaylistForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                // Error mesajlarını temizle
+                clearMessages();
+                
+                var title = $('#Title').val().trim();
+                
+                // Client-side validation
+                if (!title) {
+                    showError('Playlist name is required.');
+                    $('#titleError').text('Playlist name is required.');
+                    return;
+                }
+                
+                if (title.length < 3) {
+                    showError('Playlist name must be at least 3 characters long.');
+                    $('#titleError').text('Playlist name must be at least 3 characters long.');
+                    return;
+                }
+                
+                // Submit form via AJAX
+                submitForm(title);
+            });
+            
+            // Input change'de error mesajlarını temizle
+            $('#Title').on('input', function() {
+                clearMessages();
+            });
+            
+            function submitForm(title) {
+                // Loading state göster
+                showLoading(true);
+                
+                $.ajax({
+                    url: '/Playlist/Create',
+                    type: 'POST',
+                    data: {
+                        title: title,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(result) {
+                        showLoading(false);
+                        
+                        if (result.success) {
+                            showSuccess(result.message);
+                            $('#Title').val('');
+                            
+                            setTimeout(function() {
+                                window.location.href = '/Playlist';
+                            }, 2000);
+                        } else {
+                            showError(result.message || 'An error occurred while creating the playlist.');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        showLoading(false);
+                        console.error('AJAX Error:', error);
+                        showError('An error occurred while creating the playlist. Please try again.');
+                    }
+                });
+            }
+            
+            function showLoading(show) {
+                var $submitBtn = $('#submitBtn');
+                var $spinner = $('#loadingSpinner');
+                
+                if (show) {
+                    $submitBtn.prop('disabled', true);
+                    $spinner.show();
+                    $submitBtn.find('span:not(.spinner-border)').text('Creating...');
+                } else {
+                    $submitBtn.prop('disabled', false);
+                    $spinner.hide();
+                    $submitBtn.find('span:not(.spinner-border)').text('Create Playlist');
+                }
+            }
+            
+            function showError(message) {
+                $('#errorMessage').text(message).show();
+                $('#successMessage').hide();
+            }
+            
+            function showSuccess(message) {
+                $('#successMessage').text(message).show();
+                $('#errorMessage').hide();
+            }
+            
+            function clearMessages() {
+                $('#errorMessage').hide();
+                $('#successMessage').hide();
+                $('#titleError').text('');
+            }
+        });
+    </script>
+
+    <style>
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        .alert {
+            border-radius: 0.375rem;
+        }
+    </style>
+}

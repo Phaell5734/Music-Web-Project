@@ -1,0 +1,24 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2 class="mb-4">Cüzdan</h2>
+
+<div class="card p-4 shadow-sm">
+    <h4>
+        Mevcut Bakiye:
+        <span class="text-success">₺@ViewBag.Balance.ToString("0.00")</span>
+    </h4>
+
+    <hr />
+
+    <form asp-action="TopUp" method="post" class="row g-2">
+        <div class="col-sm-6">
+            <input type="number" name="amount"
+                   class="form-control" min="1" step="0.01"
+                   placeholder="₺ Miktar" required />
+        </div>
+        <div class="col-sm-6">
+            <button class="btn btn-primary w-100">Bakiye Yükle</button>
+        </div>
+    </form>
+</div>

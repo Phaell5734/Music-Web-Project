@@ -1,0 +1,240 @@
+﻿@model IEnumerable<Song>
+@{
+    ViewBag.Title = "My Library";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <h3 class="mb-4">My Library</h3>
+            
+            @if (Model.Any())
+            {
+                <div class="row">
+                    @foreach (var song in Model)
+                    {
+                        <div class="col-12 mb-4 song-item" data-song-id="@song.SongId">
+                            <div class="card h-100 shadow-sm rounded d-flex flex-row">
+                                <!-- Left: banner image -->
+                                <img src="@song.ImagePath"
+                                     class="rounded-start"
+                                     alt="@song.Title"
+                                     style="width:150px; height:120px; object-fit:cover;" />
+
+                                <!-- Right: details + actions -->
+                                <div class="card-body d-flex flex-column">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <h5 class="card-title mb-0 text-truncate me-2">@song.Title</h5>
+                                        <span class="badge bg-success">Owned</span>
+                                    </div>
+                                    <p class="card-text text-muted small mb-3 text-truncate">@song.Genre</p>
+
+                                    <!-- Play Button -->
+                                    <button class="btn btn-success btn-sm rounded-pill btn-play mb-2"
+                                            data-url="@song.FilePath"
+                                            data-cover="@song.ImagePath"
+                                            data-title="@song.Title"
+                                            data-artist="">
+                                        <i class="fa fa-play me-1"></i> Play
+                                    </button>
+
+                                    <div class="mt-auto d-flex gap-2">
+                                        <a href="@song.FilePath" download class="btn btn-outline-secondary btn-sm flex-fill">
+                                            <i class="fa fa-download me-1"></i> Download
+                                        </a>
+                                        <a asp-controller="Song" asp-action="SongDetails" asp-route-id="@song.SongId"
+                                           class="btn btn-outline-primary btn-sm flex-fill">
+                                            Details
+                                        </a>
+                                    </div>
+
+                                    <!-- Add to Playlist Button -->
+                                    <button class="btn btn-outline-secondary btn-sm mt-2 add-to-playlist-btn"
+                                            data-song-id="@song.SongId"
+                                            data-song-title="@song.Title"
+                                            data-toggle="modal"
+                                            data-target="#addToPlaylistModal">
+                                        <i class="fa fa-list me-1"></i> Add to Playlist
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info text-center">
+                    <h5>Your library is empty</h5>
+                    <p>You haven't purchased any songs yet. Browse our collection and add some music to your library!</p>
+                    <a asp-controller="Song" asp-action="Index" class="btn btn-primary">
+                        <i class="fa fa-music me-1"></i> Browse Songs
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Add to Playlist Modal - Song/Index'ten kopyalandı -->
+<div class="modal fade" id="addToPlaylistModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Song to Playlist</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Select Playlists:</h6>
+                        <div id="playlistsList" class="mb-3">
+                            <!-- Playlists will be loaded here -->
+                            <div class="text-center">
+                                <div class="spinner-border" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Create New Playlist:</h6>
+                        <form id="quickCreatePlaylistForm">
+                            @Html.AntiForgeryToken()
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="newPlaylistTitle" name="title" placeholder="Enter playlist name..." required>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-sm">
+                                <i class="fa fa-plus me-1"></i> Create & Add Song
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="addToSelectedPlaylists">
+                    <i class="fa fa-plus me-1"></i> Add to Selected Playlists
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var currentSongId = 0;
+
+        $(document).ready(function() {
+            // Add to playlist button click handler
+            $(document).on('click', '.add-to-playlist-btn', function () {
+                currentSongId = $(this).data('song-id');
+                var songTitle = $(this).data('song-title');
+
+                $('#addToPlaylistModal .modal-title').text('Add "' + songTitle + '" to Playlist');
+                loadUserPlaylistsModal();
+            });
+
+            // Add to selected playlists
+            $('#addToSelectedPlaylists').on('click', function () {
+                var selectedPlaylistIds = $('#playlistsList input[type="checkbox"]:checked').map(function () {
+                    return $(this).val();
+                }).get();
+
+                if (selectedPlaylistIds.length === 0) {
+                    alert('Please select at least one playlist');
+                    return;
+                }
+
+                $.ajax({
+                    url: '/Playlist/AddSongToPlaylist',
+                    type: 'POST',
+                    data: {
+                        songId: currentSongId,
+                        playlistIds: selectedPlaylistIds
+                    },
+                    traditional: true,
+                    success: function (result) {
+                        if (result.success) {
+                            alert('Song added to selected playlists successfully!');
+                            $('#addToPlaylistModal').modal('hide');
+                            // Clear selections
+                            $('#playlistsList input[type="checkbox"]').prop('checked', false);
+                        } else {
+                            alert('Error: ' + (result.message || 'Could not add song to playlist'));
+                        }
+                    },
+                    error: function () {
+                        alert('Error adding song to playlist');
+                    }
+                });
+            });
+
+            // Quick create playlist form
+            $('#quickCreatePlaylistForm').on('submit', function (e) {
+                e.preventDefault();
+                var playlistTitle = $('#newPlaylistTitle').val().trim();
+
+                if (!playlistTitle) {
+                    alert('Please enter a playlist name');
+                    return;
+                }
+
+                $.ajax({
+                    url: '/Playlist/CreateAndAddSong',
+                    type: 'POST',
+                    data: {
+                        title: playlistTitle,
+                        songId: currentSongId,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (result) {
+                        if (result.success) {
+                            alert('Playlist created and song added successfully!');
+                            $('#addToPlaylistModal').modal('hide');
+                            $('#newPlaylistTitle').val('');
+                        } else {
+                            alert('Error: ' + (result.message || 'Could not create playlist'));
+                        }
+                    },
+                    error: function () {
+                        alert('Error creating playlist');
+                    }
+                });
+            });
+
+            function loadUserPlaylistsModal() {
+                $('#playlistsList').html('<div class="text-center"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></div>');
+
+                $.ajax({
+                    url: '/Playlist/GetUserPlaylists',
+                    type: 'GET',
+                    success: function (result) {
+                        var html = '';
+
+                        if (!result.playlists || result.playlists.length === 0) {
+                            html = '<div class="alert alert-info">No playlists found. Create one using the form on the right.</div>';
+                        } else {
+                            result.playlists.forEach(function (playlist) {
+                                html += '<div class="form-check mb-2">';
+                                html += '<input class="form-check-input" type="checkbox" value="' + playlist.playlistId + '" id="playlist-' + playlist.playlistId + '">';
+                                html += '<label class="form-check-label" for="playlist-' + playlist.playlistId + '">' + playlist.title + '</label>';
+                                html += '</div>';
+                            });
+                        }
+
+                        $('#playlistsList').html(html);
+                    },
+                    error: function () {
+                        $('#playlistsList').html('<div class="alert alert-danger">Error loading playlists</div>');
+                    }
+                });
+            }
+
+            window.loadUserPlaylistsModal = loadUserPlaylistsModal;
+        });
+    </script>
+}

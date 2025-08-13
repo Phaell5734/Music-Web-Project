@@ -1,0 +1,24 @@
+@using Uyumsoft_Projem.Services
+@inject ICurrentUserService CurrentUserService
+
+@{
+    await CurrentUserService.EnsureLoadedAsync();
+    var currentUser = CurrentUserService.Current;
+    var hasActiveSubscription = CurrentUserService.HasActiveSubscription();
+}
+
+@if (currentUser != null)
+{
+    @if (hasActiveSubscription)
+    {
+        <span class="badge bg-success">
+            <i class="fa fa-star me-1"></i> Premium
+        </span>
+    }
+    else
+    {
+        <a href="/Subscription" class="btn btn-outline-warning btn-sm">
+            <i class="fa fa-star me-1"></i> Upgrade
+        </a>
+    }
+}

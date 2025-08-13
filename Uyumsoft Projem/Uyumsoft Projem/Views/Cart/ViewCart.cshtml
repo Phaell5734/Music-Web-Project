@@ -1,0 +1,31 @@
+﻿@model IEnumerable<CartItem>
+@{
+    var total = Model.Sum(x => x.Price);
+}
+
+<h3>Sepetim</h3>
+<table class="table">
+    <thead><tr><th>Parça</th><th>Fiyat</th><th></th></tr></thead>
+    <tbody>
+        @foreach (var it in Model)
+        {
+            <tr>
+                <td>@it.Title</td>
+                <td>₺@it.Price</td>
+                <td>
+                    <form asp-action="Remove" asp-route-id="@it.SongId" method="post">
+                        <button class="btn btn-sm btn-danger">✕</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="d-flex justify-content-between">
+    <h4>Toplam: <span class="text-success">₺@total</span></h4>
+
+    <form asp-action="Checkout" method="post">
+        <button class="btn btn-primary">Satın Al</button>
+    </form>
+</div>

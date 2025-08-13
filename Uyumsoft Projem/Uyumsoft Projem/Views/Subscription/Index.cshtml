@@ -1,0 +1,101 @@
+﻿@{
+    ViewData["Title"] = "Premium Subscription";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h3 mb-0">Premium Subscription</h1>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Message"] != null)
+                    {
+                        <div class="alert alert-info">@TempData["Message"]</div>
+                    }
+                    
+                    <div class="text-center mb-4">
+                        <h2 class="display-4 font-weight-bold">$5<small class="text-muted">/month</small></h2>
+                        <p class="lead">Unlock the full music experience</p>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h4>Features</h4>
+                            <ul class="list-group">
+                                <li class="list-group-item"><i class="fa fa-check text-success me-2"></i> Access all songs</li>
+                                <li class="list-group-item"><i class="fa fa-check text-success me-2"></i> Ad-free listening</li>
+                                <li class="list-group-item"><i class="fa fa-check text-success me-2"></i> Unlimited skips</li>
+                                <li class="list-group-item"><i class="fa fa-check text-success me-2"></i> Create unlimited playlists</li>
+                                <li class="list-group-item"><i class="fa fa-check text-success me-2"></i> Download for offline listening</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Payment Details</h4>
+                            <div class="form-group mb-3">
+                                <label for="cardNumber">Card Number</label>
+                                <input type="text" class="form-control" id="cardNumber" placeholder="1234 5678 9012 3456">
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="expDate">Expiration Date</label>
+                                        <input type="text" class="form-control" id="expDate" placeholder="MM/YY">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="cvv">CVV</label>
+                                        <input type="text" class="form-control" id="cvv" placeholder="123">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button id="subscribeBtn" class="btn btn-primary btn-lg">Subscribe Now</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmSubscriptionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Subscription</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>You are about to subscribe to our Premium plan for $5/month.</p>
+                <p>Are you sure you want to proceed?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <form asp-action="Subscribe" method="post">
+                    <button type="submit" class="btn btn-primary">Confirm Subscription</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function() {
+            // Show confirmation modal when subscribe button is clicked
+            $('#subscribeBtn').on('click', function() {
+                // Validate form fields (not implemented for simplicity)
+                $('#confirmSubscriptionModal').modal('show');
+            });
+        });
+    </script>
+}

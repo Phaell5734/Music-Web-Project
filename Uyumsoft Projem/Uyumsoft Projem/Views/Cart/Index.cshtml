@@ -1,0 +1,87 @@
+﻿@model IEnumerable<Uyumsoft_Projem.Models.CartItem>
+@{
+    ViewBag.Title = "My Cart";
+    var total = Model.Sum(x => x.Price);
+}
+
+<h2 class="mb-4">Shopping Cart</h2>
+@if (TempData["msg"] != null)
+{
+    <div class="alert alert-success">@TempData["msg"]</div>
+}
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Sepetiniz boş.</div>
+}
+else
+{
+    <table class="table align-middle">
+        <thead>
+            <tr><th>Song</th><th class="text-end">Price</th><th></th></tr>
+        </thead>
+        <tbody>
+            @foreach (var i in Model)
+            {
+                <tr>
+                    <td>@i.Title</td>
+                    <td class="text-end">$@i.Price</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-link text-danger remove-cart"
+                                data-id="@i.SongId">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <th class="text-end">Total:</th>
+                <th class="text-end">$@total</th>
+                <th></th>
+            </tr>
+        </tfoot>
+    </table>
+    <button id="btnCheckout" class="btn btn-success"@( !Model.Any() ? "disabled" : "" )>
+        Proceed to Checkout
+    </button>
+}
+
+@section Scripts {
+    <script>
+        $('body').on('click','.remove-cart',function(){
+            const id = $(this).data('id');
+            $.post(`/Cart/Remove/${id}`)
+              .done(res=>{
+                  updateCartBadge(res.count);
+                  location.reload();
+              });
+        });
+
+
+        $('#btnCheckout').on('click', ()=>{
+            $('#btnCheckout').prop('disabled', true);           
+
+            $.post('/Cart/Checkout')
+              .done((response) => {
+                  if (response.success) {
+                      window.location.href = '/Cart/Success';
+                  } else {
+                      alert(response.message || 'İşlem başarısız');
+                      $('#btnCheckout').prop('disabled', false);
+                  }
+              })
+              .fail(x => {
+                  var response = JSON.parse(x.responseText || '{}');
+                  if (response.redirectToProfile) {
+                      if (confirm(response.message + '\n\nRedirect to profile page?')) {
+                          window.location.href = '/Account/Profile';
+                      }
+                  } else {
+                      alert(x.responseText || 'İşlem başarısız');
+                  }
+                  $('#btnCheckout').prop('disabled', false);
+              });
+        });
+    </script>
+}

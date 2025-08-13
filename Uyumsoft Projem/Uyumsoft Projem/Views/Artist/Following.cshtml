@@ -1,0 +1,35 @@
+﻿@model List<Uyumsoft_Projem.Models.User>
+
+@{
+    ViewData["Title"] = "Following";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5">
+    <h1>Following</h1>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="row">
+            @foreach (var artist in Model)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a asp-controller="Artist" asp-action="Index" asp-route-artistName="@artist.UserName">
+                                    @artist.UserName
+                                </a>
+                            </h5>
+                            <p class="card-text">@artist.FirstName @artist.LastName</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p>You are not following any artists yet.</p>
+    }
+</div>
