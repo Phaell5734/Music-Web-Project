@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "lyQ4KjUov5s=",
+  "dgSpecHash": "l4zWeCLHsNQ=",
   "success": true,
-  "projectFilePath": "C:\\Users\\frat5\\source\\repos\\Uyumsoft Projem\\Uyumsoft Projem\\Uyumsoft Projem.csproj",
+  "projectFilePath": "C:\\Users\\frat5\\Desktop\\Github\\Phaell5734\\Music-Web-Project\\Uyumsoft Projem\\Uyumsoft Projem\\Uyumsoft Projem.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\frat5\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\frat5\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",

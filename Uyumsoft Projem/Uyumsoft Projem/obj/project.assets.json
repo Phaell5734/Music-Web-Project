@@ -4729,11 +4729,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\frat5\\source\\repos\\Uyumsoft Projem\\Uyumsoft Projem\\Uyumsoft Projem.csproj",
+      "projectUniqueName": "C:\\Users\\frat5\\Desktop\\Github\\Phaell5734\\Music-Web-Project\\Uyumsoft Projem\\Uyumsoft Projem\\Uyumsoft Projem.csproj",
       "projectName": "Uyumsoft Projem",
-      "projectPath": "C:\\Users\\frat5\\source\\repos\\Uyumsoft Projem\\Uyumsoft Projem\\Uyumsoft Projem.csproj",
+      "projectPath": "C:\\Users\\frat5\\Desktop\\Github\\Phaell5734\\Music-Web-Project\\Uyumsoft Projem\\Uyumsoft Projem\\Uyumsoft Projem.csproj",
       "packagesPath": "C:\\Users\\frat5\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\frat5\\source\\repos\\Uyumsoft Projem\\Uyumsoft Projem\\obj\\",
+      "outputPath": "C:\\Users\\frat5\\Desktop\\Github\\Phaell5734\\Music-Web-Project\\Uyumsoft Projem\\Uyumsoft Projem\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -4812,7 +4812,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
